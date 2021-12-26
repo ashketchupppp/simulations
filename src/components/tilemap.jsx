@@ -1,9 +1,9 @@
 import React from "react";
-import Tile, { tile } from "./tile.jsx";
+import Tile, { makeTile } from "./tile.jsx";
 import { Container } from "react-pixi-fiber";
 
 export default function TileMap(props) {
-  const { tileWidth, tileHeight, tiles } = props;
+  const { tileWidth, tileHeight, tiles, tileTypes } = props;
 
   // j is how far down the tile is, i is how far along the tile is
   let i
@@ -13,7 +13,7 @@ export default function TileMap(props) {
     j++
     return row.map(currTile => {
       i++;
-      return tile({
+      return makeTile({
         ...currTile,
         w: tileWidth,
         h: tileHeight,
