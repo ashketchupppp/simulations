@@ -3,7 +3,12 @@ import Tile, { makeTile } from "./tile.jsx";
 import { Container } from "react-pixi-fiber";
 
 export default function TileMap(props) {
-  const { tileWidth, tileHeight, tiles, tileTypes } = props;
+  const {
+    tileWidth,
+    tileHeight,
+    tiles,
+    pointerdown
+  } = props;
 
   // j is how far down the tile is, i is how far along the tile is
   let i
@@ -25,7 +30,10 @@ export default function TileMap(props) {
 
   return (
     <>
-      <Container position={[0, 0]}>
+      <Container 
+        interactive
+        position={[0, 0]}
+        pointerdown={pointerdown ? pointerdown : () => {}}>
         {tileFlatmap.map((tile) => (<Tile {...tile} /> ))}
       </Container>
     </>

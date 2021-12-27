@@ -140,7 +140,7 @@ export default class TileGame extends React.Component {
             )}
           </AppContext.Consumer>
         </Stage>
-        <Divider />
+        <Divider/>
         {
           this.state.running
            ? <PauseCircleFilled onClick={() => { this.toggleRunning() }} style={{ fontSize: '32px' }} />
