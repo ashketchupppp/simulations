@@ -20,7 +20,7 @@ export default class GameOfLife extends React.Component {
       tick: 0,
       rerenderFlag: false,
       target_fps: 60,
-      updates_per_second: 3,
+      updates_per_second: 10,
       tiles: this.getBlankTileMap()
     }
     this.newTiles = this.state.tiles
@@ -79,6 +79,8 @@ export default class GameOfLife extends React.Component {
         tiles: this.newTiles
       })
       this.newTiles = cloneDeep(this.state.tiles)
+      // TODO: Make the tile JSON serializable and deep copy
+      //       by doing JSON.parse(JSON.stringify(this.state.tiles))
     }
   }
 
@@ -94,7 +96,7 @@ export default class GameOfLife extends React.Component {
                 this.newTiles[j][i].merge(this.tileTypes().DEAD)
               }
             } else if (this.state.tiles[j][i].type === this.tileTypes().DEAD.type) {
-              if (numSurroundingAlive > 2) {
+              if (numSurroundingAlive === 3) {
                 this.newTiles[j][i].merge(this.tileTypes().ALIVE)
               }
             }
