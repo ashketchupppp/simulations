@@ -29,10 +29,18 @@ module.exports = {
       },
       {
         test:/\.css$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'css-loader'
-        }
+        use: [
+          "style-loader",
+          "css-loader"
+        ]
+      },
+      {
+        test:/\.less$/,
+        use: [
+          "style-loader",
+          "css-loader",
+          "less-loader"
+        ]
       },
       {
         test: /\.png$/,

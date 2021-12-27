@@ -6,10 +6,6 @@ export const makeTile = (props = {}) => {
   return {
     key: uuidv4(),
     colour: 0x000000,
-    x: 0,
-    y: 0,
-    w: 20,
-    h: 20,
     ...props,
   };
 }
