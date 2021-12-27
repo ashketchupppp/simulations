@@ -6,6 +6,10 @@ export const makeTile = (props = {}) => {
   return {
     key: uuidv4(),
     colour: 0x000000,
+    merge: function (tile) {
+      this.colour = tile.colour
+      this.type = tile.type
+    },
     ...props,
   };
 }
@@ -14,11 +18,18 @@ const TYPE = "Rectangle";
 export const behavior = {
   customDisplayObject: (props) => new PIXI.Graphics(),
   customApplyProps: function (instance, oldProps, newProps) {
-    const { x, y, w, h, colour } = newProps;
-    instance.clear();
-    instance.beginFill(colour);
-    instance.drawRect(x, y, w, h);
-    instance.endFill();
+    if (
+      oldProps.colour !== newProps.colour ||
+      oldProps.x !== newProps.x ||
+      oldProps.y !== newProps.y ||
+      oldProps.w !== newProps.w ||
+      oldProps.h !== newProps.h
+    ) {
+      instance.clear();
+      instance.beginFill(newProps.colour);
+      instance.drawRect(newProps.x, newProps.y, newProps.w, newProps.h);
+      instance.endFill();
+    }
   }
 };
 export default CustomPIXIComponent(behavior, TYPE)

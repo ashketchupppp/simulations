@@ -16,9 +16,16 @@ export default class Simulation extends React.Component {
       running: false,
       tick: 0,
       rerenderFlag: false,
-      updates_per_second: 3,
-      interval_handler: undefined
+      target_fps: 60,
+      updates_per_second: 3
     }
+    this.update_handler = undefined
+    this.render_handler = undefined
+  }
+
+  componentDidMount () {
+    this.update_handler = setInterval(this.update.bind(this), 1000 / this.state.updates_per_second)
+    this.render_handler = setInterval(this.rerender.bind(this), 1000 / this.state.target_fps)
   }
 
   reset () {
@@ -27,38 +34,44 @@ export default class Simulation extends React.Component {
       tick: 0
     })
     this.props.onReset()
-    this.rerender()
-  }
-
-  start () {
-    const update = () => { 
-      try {
-        this.props.onUpdate()
-        this.setState({
-          tick: this.state.tick + 1
-        })
-      } catch (e) {
-        console.error(e)
-        clearInterval(this.state.interval_handler)
-      }
-    }
-    const interval = setInterval(update.bind(this), 1000 / this.state.updates_per_second)
-
-    this.setState({
-      interval_handler: interval
-    })
-    this.props.onStart()
   }
 
   rerender () {
+    if (!this.timeSinceLastUpdate) {
+      this.timeSinceLastUpdate = new Date().getTime()
+    }
+    const dt = new Date().getTime() - this.timeSinceLastUpdate
+    if (dt > 1000 / this.state.target_fps) {
+      this.setState({
+        rerenderFlag: !this.state.rerenderFlag
+      })
+    }
+  }
+
+  update () {
+    try {
+      if (this.state.running) {
+        this.props.onUpdate()
+      }
+    } catch (e) {
+      console.error(e)
+      clearInterval(this.state.update_handler)
+    }
+  }
+
+  start () {
+    this.props.onStart()
     this.setState({
-      rerenderFlag: !this.state.rerenderFlag
+      running: true
     })
   }
 
   stop () {
-    clearInterval(this.state.interval_handler)
+    clearInterval(this.state.update_handler)
     this.props.onStop()
+    this.setState({
+      running: false
+    })
   }
 
   toggleRunning () {
@@ -78,7 +91,6 @@ export default class Simulation extends React.Component {
       height: this.props.height,
       width: this.props.width
     };
-
     return (
       <>
         <Stage options={stageopts}>
@@ -86,9 +98,18 @@ export default class Simulation extends React.Component {
         </Stage>
         <Divider />
         {this.state.running
-           ? <PauseCircleFilled onClick={() => { this.toggleRunning() }} style={{ fontSize: '32px' }} />
-           : <PlayCircleFilled onClick={() => { this.toggleRunning() }} style={{ fontSize: '32px' }} />}
-        {<CloseCircleFilled onClick={() => { this.reset() }} style={{ fontSize: '32px' }} />}
+           ? <PauseCircleFilled 
+                onClick={() => { this.toggleRunning() }}
+                style={{ fontSize: '32px' }}
+              />
+           : <PlayCircleFilled
+                onClick={() => { this.toggleRunning() }}
+                style={{ fontSize: '32px' }} 
+              />}
+        {<CloseCircleFilled 
+            onClick={() => { this.reset() }}
+            style={{ fontSize: '32px' }}
+        />}
         Iteration: {this.state.tick}
       </>
     );

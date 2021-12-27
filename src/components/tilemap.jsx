@@ -2,39 +2,46 @@ import React from "react";
 import Tile, { makeTile } from "./tile.jsx";
 import { Container } from "react-pixi-fiber";
 
-export default function TileMap(props) {
-  const {
-    tileWidth,
-    tileHeight,
-    tiles,
-    pointerdown
-  } = props;
-
-  // j is how far down the tile is, i is how far along the tile is
+export function createBlankTiles (width, height, tileSize, defaultTile) {
+  let tiles = Array.apply(null, Array(width)).map(() =>
+    Array.apply(null, Array(height)).map(() => makeTile(defaultTile))
+  )
   let i
   let j = -1;
-  const tileFlatmap = tiles.map(row => {
+  return tiles.map(row => {
     i = -1;
     j++
     return row.map(currTile => {
       i++;
-      return makeTile({
+      return {
         ...currTile,
-        w: tileWidth,
-        h: tileHeight,
-        x: tileWidth * i,
-        y: tileHeight * j
-      })
+        w: tileSize,
+        h: tileSize,
+        x: tileSize * i,
+        y: tileSize * j
+      }
     })
-  }).flat();
+  })
+}
+
+export default function TileMap(props) {
+  const {
+    tiles,
+    pointerdown,
+    pointermove,
+    pointerup
+  } = props;
 
   return (
     <>
       <Container 
         interactive
         position={[0, 0]}
-        pointerdown={pointerdown ? pointerdown : () => {}}>
-        {tileFlatmap.map((tile) => (<Tile {...tile} /> ))}
+        pointerdown={pointerdown ? pointerdown : () => {}}
+        pointermove={pointermove ? pointermove : () => {}}
+        pointerup={pointerup ? pointerup : () => {}}
+      >
+        {tiles.flat().map((tile) => (<Tile {...tile} /> ))}
       </Container>
     </>
   );
