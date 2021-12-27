@@ -6,7 +6,7 @@ import PowderSim from './components/powder-sim.jsx'
 const rootElement = document.getElementById("root");
 ReactDOM.render(
   <StrictMode>
-    <PowderSim width={10} height={10} />
+    <PowderSim width={10} height={10} tileSize={10} />
   </StrictMode>,
   rootElement
 );
