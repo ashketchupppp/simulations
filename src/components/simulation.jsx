@@ -1,9 +1,20 @@
 import React from 'react'
-import { Stage, AppContext } from 'react-pixi-fiber'
+import { Stage } from 'react-pixi-fiber'
 import { PlayCircleFilled, PauseCircleFilled, CloseCircleFilled } from '@ant-design/icons'
 import { Divider } from 'antd';
 
 export default class Simulation extends React.Component {
+  /*
+    Controls the rendering of the child pixi.js components using a set of
+    controls provided by Simulation. Gives you buttons to start, stop and
+    reset the simulation.
+
+    To update your game/simulation you should do the following
+       - have the current game state stored in your React state
+       - calculate the new game state and put it into a variable outside of React state
+       - in onRender, update your React game state to the one outside the React state
+  */
+
   constructor (props) {
     super(props)
     const {
