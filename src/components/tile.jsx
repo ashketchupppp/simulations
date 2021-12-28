@@ -23,12 +23,16 @@ export const behavior = {
       oldProps.x !== newProps.x ||
       oldProps.y !== newProps.y ||
       oldProps.w !== newProps.w ||
-      oldProps.h !== newProps.h
+      oldProps.h !== newProps.h ||
+      oldProps.mask !== newProps.mask
     ) {
       instance.clear();
       instance.beginFill(newProps.colour);
       instance.drawRect(newProps.x, newProps.y, newProps.w, newProps.h);
       instance.endFill();
+      if (newProps.mask) {
+        instance.mask = newProps.mask
+      }
     }
   }
 };

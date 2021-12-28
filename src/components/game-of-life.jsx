@@ -1,41 +1,38 @@
 import React from 'react'
-import { Stage, AppContext } from 'react-pixi-fiber'
-import { PlayCircleFilled, PauseCircleFilled, CloseCircleFilled } from '@ant-design/icons'
-import { Divider } from 'antd';
 import { cloneDeep } from 'lodash';
 
 import TileMap, { createBlankTiles } from './tilemap.jsx';
+import Simulation from './simulation.jsx';
 
 export default class GameOfLife extends React.Component {
+  static defaultProps = {
+    width: 400,
+    height: 400,
+    tileSize: 15,
+    updatesPerSec: 3
+  }
+
   constructor (props) {
     super(props)
     const {
       width,
       height,
-      tileSize
+      tileSize,
+      updatesPerSec
     } = this.props
 
     this.state = {
-      running: false,
-      tick: 0,
-      rerenderFlag: false,
-      target_fps: 60,
-      updates_per_second: 10,
       tiles: this.getBlankTileMap()
     }
+
     this.newTiles = this.state.tiles
     this.update_handler = undefined
-    this.render_handler = undefined
-    if (!tileSize) {
-      this.props.tileSize = 15
-    }
     this.pointerDown = false
     this.renderCount = 0
   }
 
   componentDidMount () {
     this.update_handler = undefined
-    this.render_handler = setInterval(this.rerender.bind(this), 1000 / this.state.target_fps)
   }
 
   getBlankTileMap () {
@@ -60,33 +57,25 @@ export default class GameOfLife extends React.Component {
     }
   }
 
-  reset () {
-    this.stop()
+  onReset () {
     this.setState({
-      tick: 0,
       tiles: this.getBlankTileMap()
     })
     this.newTiles = this.getBlankTileMap()
   }
 
-  rerender () {
-    if (!this.timeSinceLastUpdate) {
-      this.timeSinceLastUpdate = new Date().getTime()
-    }
-    const dt = new Date().getTime() - this.timeSinceLastUpdate
-    if (dt > 1000 / this.state.target_fps) {
-      this.setState({
-        tiles: this.newTiles
-      })
-      this.newTiles = cloneDeep(this.state.tiles)
-      // TODO: Make the tile JSON serializable and deep copy
-      //       by doing JSON.parse(JSON.stringify(this.state.tiles))
-    }
+  onRerender () {
+    this.setState({
+      tiles: this.newTiles
+    })
+    this.newTiles = cloneDeep(this.state.tiles)
+    // TODO: Make the tile JSON serializable and deep copy
+    //       by doing JSON.parse(JSON.stringify(this.state.tiles))
   }
 
   update () {
     try {
-      if (this.state.running) {
+      if (this.running) {
         for (let j = 0; j < this.state.tiles.length; j++) {
           for (let i = 0; i < this.state.tiles[j].length; i++) {
             let numSurroundingAlive = this.getNumSurroundingAlive(i, j, this.state.tiles)
@@ -109,27 +98,20 @@ export default class GameOfLife extends React.Component {
     }
   }
 
-  start () {
+  onStart () {
+    this.running = true
     this.setState({
       running: true,
-      update_handler: setInterval(this.update.bind(this), 1000 / this.state.updates_per_second)
+      update_handler: setInterval(this.update.bind(this), 1000 / this.props.updatesPerSec)
     })
   }
 
-  stop () {
+  onStop () {
+    this.running = false
     clearInterval(this.state.update_handler)
     this.setState({
-      running: false,
       update_handler: undefined
     })
-  }
-
-  toggleRunning () {
-    if (this.state.running) {
-      this.stop()
-    } else {
-      this.start()
-    }
   }
 
   getSurroundingTiles (i, j) {
@@ -182,40 +164,26 @@ export default class GameOfLife extends React.Component {
     this.pointerDown = false
   }
 
-  stageopts = {
-    backgroundColor: 0x000000,
-    height: this.props.height * this.props.tileSize,
-    width: this.props.width * this.props.tileSize
-  };
-
   render () {
     return (
       <>
-        <Stage options={this.stageopts}>
+        <Simulation
+          width={this.props.width * this.props.tileSize}
+          height={this.props.height * this.props.tileSize}
+          onRerender={() => this.onRerender()}
+          onReset={() => this.onReset()}
+          onStart={() => this.onStart()}
+          onStop={() => this.onStop()}
+        >
           <TileMap
-            tileWidth={this.props.tileSize}
-            tileHeight={this.props.tileSize}
-            tiles={this.state.tiles}
-            pointerdown={e => this.pointerdown(e)}
-            pointermove={e => this.pointermove(e)}
-            pointerup={e => this.pointerup(e)}
-          />
-        </Stage>
-        <Divider />
-        {this.state.running
-          ? <PauseCircleFilled 
-                onClick={() => { this.toggleRunning() }}
-                style={{ fontSize: '32px' }}
-              />
-          : <PlayCircleFilled
-                onClick={() => { this.toggleRunning() }}
-                style={{ fontSize: '32px' }} 
-              />}
-        {<CloseCircleFilled 
-            onClick={() => { this.reset() }}
-            style={{ fontSize: '32px' }}
-        />}
-        Iteration: {this.state.tick}
+              tileWidth={this.props.tileSize}
+              tileHeight={this.props.tileSize}
+              tiles={this.state.tiles}
+              pointerdown={e => this.pointerdown(e)}
+              pointermove={e => this.pointermove(e)}
+              pointerup={e => this.pointerup(e)}
+            />
+        </Simulation>
       </>
     )
   }

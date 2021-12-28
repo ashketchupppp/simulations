@@ -5,10 +5,12 @@ import { Menu } from 'antd'
 
 import PowderSim from "./powder-sim.jsx";
 import GameOfLife from "./game-of-life.jsx";
+import FluidSim from "./fluid-sim.jsx";
 
 const selectableItems = {
   'powder-sim': (<PowderSim width={10} height={10} tileSize={20} />),
-  'game-of-life': (<GameOfLife width={50} height={50} tileSize={15} />)
+  'game-of-life': (<GameOfLife width={50} height={50} tileSize={15} />),
+  'fluid-sim' : (<FluidSim width={200} height={200} />)
 }
 
 export default function Root (props) {

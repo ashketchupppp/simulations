@@ -9,22 +9,22 @@ export default class Simulation extends React.Component {
     const {
       width,
       height,
-      onUpdate
+      onRerender,
+      onStart,
+      onStop,
+      onReset
     } = this.props
 
     this.state = {
       running: false,
       tick: 0,
       rerenderFlag: false,
-      target_fps: 60,
-      updates_per_second: 3
+      target_fps: 60
     }
-    this.update_handler = undefined
     this.render_handler = undefined
   }
 
   componentDidMount () {
-    this.update_handler = setInterval(this.update.bind(this), 1000 / this.state.updates_per_second)
     this.render_handler = setInterval(this.rerender.bind(this), 1000 / this.state.target_fps)
   }
 
@@ -42,68 +42,46 @@ export default class Simulation extends React.Component {
     }
     const dt = new Date().getTime() - this.timeSinceLastUpdate
     if (dt > 1000 / this.state.target_fps) {
-      this.setState({
-        rerenderFlag: !this.state.rerenderFlag
-      })
-    }
-  }
-
-  update () {
-    try {
-      if (this.state.running) {
-        this.props.onUpdate()
-      }
-    } catch (e) {
-      console.error(e)
-      clearInterval(this.state.update_handler)
+      this.props.onRerender()
+      // TODO: Make the tile JSON serializable and deep copy
+      //       by doing JSON.parse(JSON.stringify(this.state.tiles))
     }
   }
 
   start () {
-    this.props.onStart()
     this.setState({
       running: true
     })
+    this.props.onStart()
   }
 
   stop () {
-    clearInterval(this.state.update_handler)
-    this.props.onStop()
     this.setState({
       running: false
     })
+    this.props.onStop()
   }
 
-  toggleRunning () {
-    if (this.state.running) {
-      this.stop()
-    } else {
-      this.start()
-    }
-    this.setState({
-      running: !this.state.running
-    })
-  }
+  stageopts = {
+    backgroundColor: 0x000000,
+    height: this.props.height,
+    width: this.props.width
+  };
 
   render () {
-    const stageopts = {
-      backgroundColor: 0x000000,
-      height: this.props.height,
-      width: this.props.width
-    };
     return (
       <>
-        <Stage options={stageopts}>
+        <Stage options={this.stageopts}>
           {this.props.children}
         </Stage>
         <Divider />
         {this.state.running
            ? <PauseCircleFilled 
-                onClick={() => { this.toggleRunning() }}
+                onClick={() => { this.stop() }}
                 style={{ fontSize: '32px' }}
               />
            : <PlayCircleFilled
-                onClick={() => { this.toggleRunning() }}
+                onClick={() => { this.start() }}
                 style={{ fontSize: '32px' }} 
               />}
         {<CloseCircleFilled 
