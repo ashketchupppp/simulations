@@ -22,7 +22,8 @@ export default class GameOfLife extends React.Component {
     } = this.props
 
     this.state = {
-      tiles: this.getBlankTileMap()
+      tiles: this.getBlankTileMap(),
+      running: false
     }
 
     this.newTiles = this.state.tiles
@@ -40,12 +41,12 @@ export default class GameOfLife extends React.Component {
       this.props.width, 
       this.props.height, 
       this.props.tileSize,
-      this.tileTypes().DEAD
+      GameOfLife.tileTypes().DEAD
     )
   }
 
-  tileTypes () {
-    return {
+  static tileTypes (type) {
+    const tiles = {
       DEAD: {
         type: 'DEAD',
         colour: 0x101010
@@ -55,6 +56,10 @@ export default class GameOfLife extends React.Component {
         colour: 0xffffff
       },
     }
+    if (type) {
+      return tiles[type]
+    }
+    return tiles
   }
 
   onReset () {
@@ -75,20 +80,14 @@ export default class GameOfLife extends React.Component {
 
   update () {
     try {
-      if (this.running) {
+      if (this.state.running) {
         for (let j = 0; j < this.state.tiles.length; j++) {
           for (let i = 0; i < this.state.tiles[j].length; i++) {
-            let numSurroundingAlive = this.getNumSurroundingAlive(i, j, this.state.tiles)
-    
-            if (this.state.tiles[j][i].type === this.tileTypes().ALIVE.type) {
-              if (numSurroundingAlive < 2 || numSurroundingAlive > 3) {
-                this.newTiles[j][i].merge(this.tileTypes().DEAD)
-              }
-            } else if (this.state.tiles[j][i].type === this.tileTypes().DEAD.type) {
-              if (numSurroundingAlive === 3) {
-                this.newTiles[j][i].merge(this.tileTypes().ALIVE)
-              }
-            }
+            const newCellState = calculateNewCellState(
+              this.state.tiles[j][i].type,
+              this.getNumSurroundingAlive(i, j, this.state.tiles)
+            )
+            this.newTiles[j][i].merge(GameOfLife.tileTypes(newCellState))
           }
         }
       }
@@ -99,7 +98,6 @@ export default class GameOfLife extends React.Component {
   }
 
   onStart () {
-    this.running = true
     this.setState({
       running: true,
       update_handler: setInterval(this.update.bind(this), 1000 / this.props.updatesPerSec)
@@ -107,9 +105,9 @@ export default class GameOfLife extends React.Component {
   }
 
   onStop () {
-    this.running = false
     clearInterval(this.state.update_handler)
     this.setState({
+      running: false,
       update_handler: undefined
     })
   }
@@ -128,7 +126,7 @@ export default class GameOfLife extends React.Component {
     return this.getSurroundingTiles(i, j)
     .map(pos => tiles[pos[0]][pos[1]])
     .reduce((pV, cV) => {
-      if (cV.type === this.tileTypes().ALIVE.type) {
+      if (cV.type === GameOfLife.tileTypes().ALIVE.type) {
         return pV + 1
       }
       return pV
@@ -140,10 +138,10 @@ export default class GameOfLife extends React.Component {
     const i = Math.floor(event.data.global.x / this.props.tileSize)
     const j = Math.floor(event.data.global.y / this.props.tileSize)
     if (!this.state.running) {
-      if (this.state.tiles[j][i].type === this.tileTypes().DEAD.type) {
-        this.newTiles[j][i].merge(this.tileTypes().ALIVE)
-      } else if (this.state.tiles[j][i].type === this.tileTypes().ALIVE.type) {
-        this.newTiles[j][i].merge(this.tileTypes().DEAD)
+      if (this.state.tiles[j][i].type === GameOfLife.tileTypes().DEAD.type) {
+        this.newTiles[j][i].merge(GameOfLife.tileTypes().ALIVE)
+      } else if (this.state.tiles[j][i].type === GameOfLife.tileTypes().ALIVE.type) {
+        this.newTiles[j][i].merge(GameOfLife.tileTypes().DEAD)
       }
     }
   }
@@ -154,8 +152,8 @@ export default class GameOfLife extends React.Component {
     if (!this.state.running && this.pointerDown &&
         i < this.props.width && i >= 0 &&
         j < this.props.width && j >= 0) {
-      if (this.state.tiles[j][i].type === this.tileTypes().DEAD.type) {
-        this.newTiles[j][i].merge(this.tileTypes().ALIVE)
+      if (this.state.tiles[j][i].type === GameOfLife.tileTypes().DEAD.type) {
+        this.newTiles[j][i].merge(GameOfLife.tileTypes().ALIVE)
       }
     }
   }
@@ -187,4 +185,17 @@ export default class GameOfLife extends React.Component {
       </>
     )
   }
+}
+
+export function calculateNewCellState(cellType, numSurroundingAlive) {
+  if (cellType ==='ALIVE') {
+    if (numSurroundingAlive < 2 || numSurroundingAlive > 3) {
+      return 'DEAD'
+    }
+  } else if (cellType === 'DEAD') {
+    if (numSurroundingAlive === 3) {
+      return 'ALIVE'
+    }
+  }
+  return cellType
 }
